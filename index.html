@@ -3,21 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> 심화영어작문 단어 암기장</title>
+    <title>명솔VOCA를 외보자 Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
+        /* CSS 변수 설정 (라이트모드 / 다크모드 기본 테마) */
         :root {
-            --primary: #c298ed;
-            --primary-hover: #9973bd;
-            --bg: #F4F7F6;
-            --text-main: #333333;
-            --card-bg: #FFFFFF;
-            --correct: #2E7D32;
-            --wrong: #C62828;
+            --bg-main: #F4F7F6;
+            --bg-card: #FFFFFF;
+            --text-main: #2C3E50;
+            --text-sub: #7F8C8D;
+            --primary: #3498DB;
+            --primary-hover: #2980B9;
+            --border: #E2E8F0;
+            --correct: #2ECC71;
+            --wrong: #E74C3C;
+            --orange: #E67E22;
+            --orange-hover: #D35400;
+            --shadow: rgba(0, 0, 0, 0.06);
         }
+
+        body.dark-mode {
+            --bg-main: #0F172A;
+            --bg-card: #1E293B;
+            --text-main: #F8FAFC;
+            --text-sub: #94A3B8;
+            --primary: #38BDF8;
+            --primary-hover: #0EA5E9;
+            --border: #334155;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+        }
+
         body {
-            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-            background-color: var(--bg);
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background-color: var(--bg-main);
             color: var(--text-main);
             margin: 0;
             padding: 20px;
@@ -26,346 +50,528 @@
             align-items: center;
             min-height: 100vh;
         }
+
         .container {
-            background-color: var(--card-bg);
-            max-width: 800px;
+            background-color: var(--bg-card);
+            max-width: 850px;
             width: 100%;
             border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 10px 30px var(--shadow);
             padding: 40px;
             box-sizing: border-box;
-            text-align: center;
+            position: relative;
         }
-        h1 {
-            color: var(--primary);
-            margin-bottom: 10px;
+
+        /* 탑 제어 바 (다크모드 & 일시정지) */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
         }
-        p {
-            line-height: 1.6;
-            color: #666;
+
+        .icon-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1rem;
         }
+
+        .icon-btn:hover {
+            background-color: var(--border);
+            transform: scale(1.05);
+        }
+
+        /* 화면 제어 */
         .screen {
             display: none;
         }
         .screen.active {
             display: block;
-            animation: fadeIn 0.4s ease;
+            animation: fadeIn 0.3s ease;
         }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        /* Loading */
-        #loading {
-            font-size: 1.2rem;
+
+        h1 {
             color: var(--primary);
-            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
         }
 
-        /* Buttons */
+        p.description {
+            text-align: center;
+            color: var(--text-sub);
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        /* 학습 모드 버튼 */
         .mode-btn {
-            display: block;
+            display: flex;
+            align-items: center;
             width: 100%;
-            max-width: 400px;
-            margin: 15px auto;
-            padding: 15px 20px;
+            padding: 18px 25px;
             background-color: var(--primary);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
+            border-radius: 12px;
+            font-size: 1.15rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px rgba(74, 144, 226, 0.2);
-        }
-        .mode-btn:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(74, 144, 226, 0.3);
+            margin-bottom: 15px;
         }
 
-        /* Quiz */
-        .progress {
-            font-size: 0.9rem;
-            color: #999;
-            margin-bottom: 20px;
-            text-align: right;
+        .mode-btn i {
+            margin-right: 15px;
+            font-size: 1.3rem;
         }
+
+        .mode-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        /* 상단 게이지 바 */
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* 문제 제시 박스 */
         .question-box {
-            font-size: 1.5rem;
-            margin: 30px 0;
-            padding: 30px;
-            background-color: #F8F9FA;
+            background-color: var(--bg-main);
+            padding: 35px;
             border-radius: 12px;
-            border-left: 5px solid var(--primary);
+            border-left: 6px solid var(--primary);
+            font-size: 1.6rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
             word-break: keep-all;
+            line-height: 1.5;
         }
+
+        /* 오지선다 버튼 */
         .option-btn {
             display: block;
             width: 100%;
-            margin: 10px 0;
-            padding: 15px;
-            background-color: white;
+            padding: 16px 20px;
+            background-color: var(--bg-card);
             color: var(--text-main);
-            border: 2px solid #E0E0E0;
-            border-radius: 8px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
             font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.2s;
             text-align: left;
-        }
-        .option-btn:hover {
-            border-color: var(--primary);
-            background-color: #F0F7FF;
+            cursor: pointer;
+            margin-bottom: 12px;
+            font-weight: 500;
         }
 
-        /* Results */
-        .result-header {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            color: var(--primary);
+        .option-btn:hover {
+            border-color: var(--primary);
+            background-color: rgba(52, 152, 219, 0.05);
         }
-        .wrong-table-container {
+
+        /* 일시정지 페이지 구성 */
+        .pause-content {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .pause-content i {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        /* 분석 테이블 디자인 */
+        .table-wrapper {
             margin-top: 30px;
             overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border);
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
-            margin-top: 15px;
         }
+
         th, td {
-            padding: 12px;
-            border-bottom: 1px solid #E0E0E0;
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
         }
+
         th {
-            background-color: #F8F9FA;
+            background-color: var(--bg-main);
+            font-weight: 600;
+            color: var(--text-sub);
+        }
+
+        .td-word { font-weight: bold; color: var(--primary); }
+        .td-wrong { color: var(--wrong); text-decoration: line-through; }
+        .td-correct { color: var(--correct); font-weight: bold; }
+
+        .action-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 35px;
+        }
+        .action-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 1.1rem;
             font-weight: bold;
+            cursor: pointer;
+            border: none;
+            text-align: center;
         }
-        .user-wrong {
-            color: var(--wrong);
-            font-weight: bold;
-            text-decoration: line-through;
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-orange { background-color: var(--orange); color: white; }
+        .btn-orange:hover { background-color: var(--orange-hover); }
+        .btn-secondary { background-color: var(--text-sub); color: white; }
+        .btn-secondary:hover { opacity: 0.9; }
+
+        /* 로더 애니메이션 */
+        .spinner {
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
         }
-        .restart-btn {
-            margin-top: 40px;
-            background-color: #333;
-        }
-        .restart-btn:hover {
-            background-color: #000;
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- 1. 로딩 화면 -->
-    <div id="loading" class="screen active">
-        <p>🔄 구글 스프레드시트에서 단어 데이터를 불러오는 중입니다...</p>
+    <div class="top-bar">
+        <button id="pause-btn" class="icon-btn" onclick="pauseQuiz()" style="display: none;" title="일시정지">
+            <i class="fa-solid fa-pause"></i>
+        </button>
+        <button class="icon-btn" onclick="toggleDarkMode()" title="다크/라이트 모드">
+            <i class="fa-solid fa-moon" id="mode-icon"></i>
+        </button>
     </div>
 
-    <!-- 2. 모드 선택 화면 -->
-    <div id="start-screen" class="screen">
-        <h1>단어 암기 마스터</h1>
-        <p>원하는 학습 모드를 선택하세요.</p>
+    <div id="screen-loading" class="screen active" style="text-align: center; padding: 40px 0;">
+        <h2>구글 스프레드시트 연동 중...</h2>
+        <p style="color: var(--text-sub);">실시간 단어 목록을 클라이언트 환경에 구성하고 있습니다.</p>
+        <div class="spinner"></div>
+    </div>
+
+    <div id="screen-home" class="screen">
+        <h1>단어 암기 마스터 Pro</h1>
+        <p class="description">원하는 문제 풀이 방식을 선택하세요!</p>
         
-        <button class="mode-btn" onclick="startQuiz(1)">한국어 뜻 보고 영어 스펠링 맞추기</button>
-        <button class="mode-btn" onclick="startQuiz(2)">영어 스펠링 보고 한국어 뜻 맞추기</button>
-        <button class="mode-btn" onclick="startQuiz(3)">영영풀이 보고 영어 스펠링 맞추기</button>
-        <button class="mode-btn" onclick="startQuiz(4)">영어 스펠링 보고 영영풀이 맞추기</button>
-
-        <p><a href="https://github.com/acornmuk08/knuhs.en.voca"> 기능 설명 확인하기</a></p>
+        <button class="mode-btn" onclick="initQuiz(1)">
+            <i class="fa-solid fa-language"></i> 1. 한국어 뜻 보고 영어 맞추기
+        </button>
+        <button class="mode-btn" onclick="initQuiz(2)">
+            <i class="fa-solid fa-font"></i> 2. 영어 스펠링 보고 뜻 맞추기
+        </button>
+        <button class="mode-btn" onclick="initQuiz(3)">
+            <i class="fa-solid fa-graduation-cap"></i> 3. 영영풀이 보고 영어 맞추기
+        </button>
+        <button class="mode-btn" onclick="initQuiz(4)">
+            <i class="fa-solid fa-book"></i> 4. 영어 보고 영영풀이 맞추기
+        </button>
+        <p><a href="https://github.com/acornmuk08/knuhs.en.voca">기능 설명 보러가기</a></p>
     </div>
 
-    <!-- 3. 퀴즈 화면 -->
-    <div id="quiz-screen" class="screen">
-        <div class="progress" id="progress-text">문제 1 / 10</div>
-        <div class="question-box" id="question-box">질문이 여기에 표시됩니다.</div>
+    <div id="screen-quiz" class="screen">
+        <div class="quiz-header">
+            <span id="quiz-mode-title">세션 실행 중</span>
+            <span id="quiz-progress-text">0 / 0</span>
+        </div>
+        <div class="progress-container">
+            <div id="quiz-progress-bar" class="progress-bar"></div>
+        </div>
+        
+        <div id="question-box" class="question-box">문항 처리 중...</div>
         <div id="options-container">
-            <!-- 선택지 버튼들이 생성되는 곳 -->
+            </div>
+    </div>
+
+    <div id="screen-pause" class="screen">
+        <div class="pause-content">
+            <i class="fa-solid fa-circle-pause"></i>
+            <h2>학습 세션 일시 정지됨</h2>
+            <p style="color: var(--text-sub); margin-bottom: 20px;">현재 진행 상태가 안전하게 보관되었습니다.</p>
+            
+            <div class="action-container" style="max-width: 450px; margin: 0 auto;">
+                <button class="action-btn btn-primary" onclick="resumeQuiz()">다시 이어하기</button>
+                <button class="action-btn btn-orange" onclick="stopAndShowResults()">지금까지 푼 문제만 결과 보기</button>
+                <button class="action-btn btn-secondary" onclick="goHome()">메인 메뉴로 나가기 (진행도 초기화)</button>
+            </div>
         </div>
     </div>
 
-    <!-- 4. 결과 및 오답 확인 화면 -->
-    <div id="result-screen" class="screen">
-        <div class="result-header">학습 완료!</div>
-        <p id="score-text" style="font-size: 1.2rem; font-weight: bold;"></p>
+    <div id="screen-result" class="screen">
+        <h1 style="margin-bottom: 10px;">세션 종료 레포트</h1>
+        <p id="score-summary" style="text-align: center; font-size: 1.3rem; font-weight: bold; margin-bottom: 30px;"></p>
         
-        <div class="wrong-table-container">
-            <h3 style="text-align: left; margin-bottom: 10px;">❌ 오답 노트</h3>
-            <div id="wrong-answers-container"></div>
+        <div id="wrong-section">
+            <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-book-bookmark" style="color:var(--wrong);"></i> 맞춤형 오답 분석 매트릭스</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">영어 단어</th>
+                            <th style="width: 25%;">한글 뜻</th>
+                            <th style="width: 30%;">내가 고른 오답</th>
+                            <th style="width: 25%;">실제 정답</th>
+                        </tr>
+                    </thead>
+                    <tbody id="wrong-table-body">
+                        </tbody>
+                </table>
+            </div>
         </div>
-        
-        <button class="mode-btn restart-btn" onclick="restart()">처음으로 돌아가기</button>
+
+        <div class="action-container" style="flex-direction: row;">
+            <button class="action-btn btn-primary" onclick="goHome()">새로운 학습 프로세스 시작</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // 입력하신 URL을 CSV 출력용 URL로 변환하여 사용합니다.
-    const originalUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzEdGYQLi5cRqLWS0lv519MTtb2DzZcKxVkkWdKjgrqHYqJi-wtuAcwl7iVjTkQq_tQHzNlgsWS-22/pub?output=csv";
-    const sheetCsvUrl = originalUrl.replace('/pubhtml', '/pub?output=csv');
+    const baseUri = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzEdGYQLi5cRqLWS0lv519MTtb2DzZcKxVkkWdKjgrqHYqJi-wtuAcwl7iVjTkQq_tQHzNlgsWS-22/pubhtml";
+    const csvUri = baseUri.replace('/pubhtml', '/pub?output=csv');
 
     let allWords = [];
     let quizWords = [];
-    let currentMode = 0;
-    let currentQuestionIndex = 0;
-    let wrongAnswers = [];
-    let score = 0;
+    let state = {
+        mode: 0,
+        currentIndex: 0,
+        score: 0,
+        wrongAnswers: []
+    };
 
-    function switchScreen(screenId) {
-        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+    function changeScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(scr => scr.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
+        document.getElementById('pause-btn').style.display = (screenId === 'screen-quiz') ? 'block' : 'none';
     }
 
-    // 데이터 불러오기
+    function toggleDarkMode() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        const icon = document.getElementById('mode-icon');
+        icon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+    }
+
+    function pauseQuiz() { changeScreen('screen-pause'); }
+    function resumeQuiz() { changeScreen('screen-quiz'); }
+    function goHome() { changeScreen('screen-home'); }
+
+    // 중간 중단 및 정산 함수
+    function stopAndShowResults() {
+        if (state.currentIndex === 0) {
+            alert("아직 한 문제도 풀지 않아 정산할 수 없습니다! 최소 한 문제 이상을 풀어주세요.");
+            return;
+        }
+        finishQuiz(true); // 중간 중단 플래그(true)를 넘김
+    }
+
     window.onload = function() {
-        Papa.parse(sheetCsvUrl, {
+        Papa.parse(csvUri, {
             download: true,
-            header: false, // 헤더가 없을 수도 있으므로 인덱스로 접근
-            complete: function(results) {
-                let data = results.data;
-                // 첫 행이 헤더일 경우(예: '단어', '뜻' 등 포함) 제거
-                if(data.length > 0 && (data[0].join('').includes('단어') || data[0].join('').includes('word'))) {
-                    data.shift();
+            header: false,
+            complete: function(res) {
+                let rows = res.data;
+                if(rows.length > 0 && (rows[0].join('').includes('단어') || rows[0].join('').includes('word'))) {
+                    rows.shift();
                 }
                 
-                // 데이터 매핑 (일반적으로 A열: 영단어, B열: 뜻, C열: 영영풀이라고 가정)
-                allWords = data.filter(row => row.length >= 2 && row[0].trim() !== '').map(row => ({
-                    en: row[0] ? row[0].trim() : '',
-                    kr: row[1] ? row[1].trim() : '뜻 없음',
-                    def: row[2] ? row[2].trim() : '영영풀이 없음'
+                allWords = rows.filter(r => r.length >= 2 && r[0].trim() !== '').map(r => ({
+                    en: r[0] ? r[0].trim() : '',
+                    kr: r[1] ? r[1].trim() : '뜻 없음',
+                    def: r[2] ? r[2].trim() : '영영풀이 없음'
                 }));
-                
+
                 if(allWords.length < 5) {
-                    document.getElementById('loading').innerHTML = "<p style='color:red;'>데이터가 너무 적습니다. 최소 5개 이상의 단어가 필요합니다.</p>";
+                    document.getElementById('screen-loading').innerHTML = `
+                        <h2 style='color:var(--wrong);'>풀링 데이터 오류</h2>
+                        <p>정상적인 오지선다 보기를 생성하려면 스프레드시트에 최소 5개 이상의 단어 레코드가 명시되어야 합니다.</p>
+                    `;
                     return;
                 }
-                
-                switchScreen('start-screen');
+                changeScreen('screen-home');
             },
-            error: function(err) {
-                document.getElementById('loading').innerHTML = `<p style='color:red;'>데이터를 불러오는데 실패했습니다.<br>스프레드시트가 '웹에 게시'되어 있는지 확인하세요.</p>`;
+            error: function() {
+                document.getElementById('screen-loading').innerHTML = `
+                    <h2 style='color:var(--wrong);'>동기화 실패</h2>
+                    <p>구글 스프레드시트의 공유 권한이 '웹에 게시' 상태로 열려있는지 확인 바랍니다.</p>
+                `;
             }
         });
     };
 
-    function startQuiz(mode) {
-        currentMode = mode;
-        // 단어 리스트 섞기
-        quizWords = [...allWords].sort(() => 0.5 - Math.random());
-        currentQuestionIndex = 0;
-        wrongAnswers = [];
-        score = 0;
+    function initQuiz(chosenMode) {
+        state.mode = chosenMode;
+        state.currentIndex = 0;
+        state.score = 0;
+        state.wrongAnswers = [];
         
-        switchScreen('quiz-screen');
-        showQuestion();
+        quizWords = [...allWords].sort(() => Math.random() - 0.5);
+        
+        const modeTitles = {
+            1: "모드 1: 뜻 ➔ 영어 스펠링",
+            2: "모드 2: 영어 ➔ 뜻",
+            3: "모드 3: 영영풀이 ➔ 영어 스펠링",
+            4: "모드 4: 영어 ➔ 영영풀이"
+        };
+        document.getElementById('quiz-mode-title').innerText = modeTitles[chosenMode];
+        
+        changeScreen('screen-quiz');
+        renderQuestion();
     }
 
-    function showQuestion() {
-        if (currentQuestionIndex >= quizWords.length) {
-            endQuiz();
+    function renderQuestion() {
+        if(state.currentIndex >= quizWords.length) {
+            finishQuiz(false); // 정상 종료
             return;
         }
-        
-        let currentWord = quizWords[currentQuestionIndex];
+
+        const total = quizWords.length;
+        const currentNum = state.currentIndex + 1;
+        document.getElementById('quiz-progress-text').innerText = `${currentNum} / ${total}`;
+        document.getElementById('quiz-progress-bar').style.width = `${(state.currentIndex / total) * 100}%`;
+
+        let currentWord = quizWords[state.currentIndex];
         let questionText = "";
-        let answerKey = ""; // 정답을 추출할 키
+        let targetField = "";
+
+        if(state.mode === 1) { questionText = currentWord.kr; targetField = 'en'; }
+        else if(state.mode === 2) { questionText = currentWord.en; targetField = 'kr'; }
+        else if(state.mode === 3) { questionText = currentWord.def; targetField = 'en'; }
+        else if(state.mode === 4) { questionText = currentWord.en; targetField = 'def'; }
+
+        document.getElementById('question-box').innerText = questionText;
+
+        let correctAnswer = currentWord[targetField];
+
+        let wrongCandidates = allWords
+            .filter(w => w[targetField] !== correctAnswer && w[targetField] !== '뜻 없음' && w[targetField] !== '영영풀이 없음')
+            .map(w => w[targetField]);
         
-        if (currentMode === 1) {
-            questionText = `다음 뜻을 가진 영단어는?<br><br><strong style='color:var(--primary); font-size:1.8rem;'>${currentWord.kr}</strong>`;
-            answerKey = 'en';
-        } else if (currentMode === 2) {
-            questionText = `다음 영단어의 뜻은?<br><br><strong style='color:var(--primary); font-size:1.8rem;'>${currentWord.en}</strong>`;
-            answerKey = 'kr';
-        } else if (currentMode === 3) {
-            questionText = `다음 영영풀이에 해당하는 단어는?<br><br><strong style='color:var(--primary); font-size:1.2rem; line-height:1.4;'>${currentWord.def}</strong>`;
-            answerKey = 'en';
-        } else if (currentMode === 4) {
-            questionText = `다음 영단어의 영영풀이는?<br><br><strong style='color:var(--primary); font-size:1.8rem;'>${currentWord.en}</strong>`;
-            answerKey = 'def';
-        }
+        wrongCandidates = [...new Set(wrongCandidates)];
+        wrongCandidates = wrongCandidates.sort(() => Math.random() - 0.5).slice(0, 4);
         
-        let correctAnswer = currentWord[answerKey];
-        
-        // 오답 4개 추출
-        let wrongPool = allWords.filter(w => w[answerKey] !== correctAnswer && w[answerKey] !== '뜻 없음' && w[answerKey] !== '영영풀이 없음');
-        // 오답 풀이 부족할 경우 대비
-        wrongPool = wrongPool.sort(() => 0.5 - Math.random()).slice(0, 4);
-        
-        let options = wrongPool.map(w => w[answerKey]);
-        options.push(correctAnswer);
-        options = options.sort(() => 0.5 - Math.random()); // 선택지 섞기
-        
-        // 화면 업데이트
-        document.getElementById('question-box').innerHTML = questionText;
-        document.getElementById('progress-text').innerText = `문제 ${currentQuestionIndex + 1} / ${quizWords.length}`;
-        
-        let optionsContainer = document.getElementById('options-container');
-        optionsContainer.innerHTML = '';
-        
-        options.forEach(opt => {
+        let finalOptions = [...wrongCandidates, correctAnswer].sort(() => Math.random() - 0.5);
+
+        let optContainer = document.getElementById('options-container');
+        optContainer.innerHTML = "";
+
+        finalOptions.forEach(opt => {
             let btn = document.createElement('button');
-            btn.className = 'option-btn';
+            btn.className = "option-btn";
             btn.innerText = opt;
-            btn.onclick = () => checkAnswer(opt, correctAnswer, currentWord);
-            optionsContainer.appendChild(btn);
+            btn.onclick = () => evaluateAnswer(opt, correctAnswer, currentWord);
+            optContainer.appendChild(btn);
         });
     }
 
-    function checkAnswer(selected, correct, wordObj) {
-        if (selected === correct) {
-            score++;
+    function evaluateAnswer(selected, correct, wordObject) {
+        if(selected === correct) {
+            state.score++;
         } else {
-            wrongAnswers.push({
-                word: wordObj,
-                selected: selected,
-                correct: correct
+            state.wrongAnswers.push({
+                word: wordObject,
+                userSelected: selected,
+                correctAnswer: correct
             });
         }
-        currentQuestionIndex++;
-        showQuestion();
+        state.currentIndex++;
+        renderQuestion();
     }
 
-    function endQuiz() {
-        switchScreen('result-screen');
+    // 학습 결과 화면 (중간 중단 대응 처리 포함)
+    function finishQuiz(isEarlyStop = false) {
+        changeScreen('screen-result');
         
-        let scoreText = `총 ${quizWords.length}문제 중 <span style='color:var(--primary)'>${score}</span>문제를 맞췄습니다!`;
-        document.getElementById('score-text').innerHTML = scoreText;
+        // 중간 중단했다면 전체 문항수가 아니라 현재까지 '푼 문항수(currentIndex)' 기준으로 분모 설정
+        const total = isEarlyStop ? state.currentIndex : quizWords.length;
         
-        let wrongContainer = document.getElementById('wrong-answers-container');
-        
-        if (wrongAnswers.length === 0) {
-            wrongContainer.innerHTML = '<p style="text-align:center; padding:30px; background:#e8f5e9; border-radius:8px; color:var(--correct);">🎉 모든 문제를 다 맞췄습니다! 완벽합니다!</p>';
+        document.getElementById('score-summary').innerHTML = `
+            ${isEarlyStop ? '⚠️ 중간 정산 결과<br>' : ''}
+            시도한 문항: <span style="color:var(--primary); font-size:1.6rem;">${state.score}</span> / ${total} 
+            (<span style="color:var(--correct);">${Math.round((state.score / total) * 100)}%</span>)
+        `;
+
+        let tableBody = document.getElementById('wrong-table-body');
+        let wrongSection = document.getElementById('wrong-section');
+        tableBody.innerHTML = "";
+
+        if(state.wrongAnswers.length === 0) {
+            wrongSection.style.display = "none";
+            document.getElementById('score-summary').innerHTML += "<br><span style='color:var(--correct); font-size:1.1rem;'>🎉 확인된 오답이 없습니다! 완벽합니다.</span>";
         } else {
-            let table = `<table>
-                <tr>
-                    <th style="width:15%">영단어</th>
-                    <th style="width:20%">뜻</th>
-                    <th style="width:40%">영영풀이</th>
-                    <th style="width:25%">내가 고른 답</th>
-                </tr>`;
-            
-            wrongAnswers.forEach(item => {
-                let selectedLabel = item.selected;
-                // 긴 영영풀이를 골랐을 경우를 대비해 살짝 자르기
-                if(selectedLabel.length > 50) selectedLabel = selectedLabel.substring(0, 50) + "...";
+            wrongSection.style.display = "block";
+            state.wrongAnswers.forEach(item => {
+                let row = document.createElement('tr');
                 
-                table += `<tr>
-                    <td><strong>${item.word.en}</strong></td>
-                    <td>${item.word.kr}</td>
-                    <td style="font-size:0.9rem;">${item.word.def}</td>
-                    <td class="user-wrong">${selectedLabel}</td>
-                </tr>`;
-            });
-            table += '</table>';
-            wrongContainer.innerHTML = table;
-        }
-    }
+                let tdWord = document.createElement('td');
+                tdWord.className = "td-word";
+                tdWord.innerText = item.word.en;
 
-    function restart() {
-        switchScreen('start-screen');
+                let tdKr = document.createElement('td');
+                tdKr.innerText = item.word.kr;
+
+                let tdWrong = document.createElement('td');
+                tdWrong.className = "td-wrong";
+                tdWrong.innerText = item.userSelected;
+
+                let tdCorrect = document.createElement('td');
+                tdCorrect.className = "td-correct";
+                tdCorrect.innerText = item.correctAnswer;
+
+                row.appendChild(tdWord);
+                row.appendChild(tdKr);
+                row.appendChild(tdWrong);
+                row.appendChild(tdCorrect);
+                tableBody.appendChild(row);
+            });
+        }
     }
 </script>
 </body>
