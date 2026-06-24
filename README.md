@@ -24,4 +24,8 @@
 
 이 프로그램이 다 실행된 이후에 틀린 문제를 복기할 수 있습니다.
 
+## 돌아가기
+https://acornmuk08.github.io/knuhs.en.voca/
+
+
 > 2026-06-24 / _made by @acornmuk_ / _powered at Github_ /
