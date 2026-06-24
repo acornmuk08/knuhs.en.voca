@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>명솔VOCA를 외보자 Pro</title>
+    <title>명솔VOCA를 외워보자 Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
@@ -13,7 +13,7 @@
             --bg-card: #FFFFFF;
             --text-main: #2C3E50;
             --text-sub: #7F8C8D;
-            --primary: #3498DB;
+            --primary: #b382e8;
             --primary-hover: #2980B9;
             --border: #E2E8F0;
             --correct: #2ECC71;
@@ -300,7 +300,7 @@
     </div>
 
     <div id="screen-home" class="screen">
-        <h1>단어 암기 마스터 Pro</h1>
+        <h1>명솔VOCA 마스터 되기</h1>
         <p class="description">원하는 문제 풀이 방식을 선택하세요!</p>
         
         <button class="mode-btn" onclick="initQuiz(1)">
@@ -335,7 +335,7 @@
     <div id="screen-pause" class="screen">
         <div class="pause-content">
             <i class="fa-solid fa-circle-pause"></i>
-            <h2>학습 세션 일시 정지됨</h2>
+            <h2>단어 학습 일시 정지됨</h2>
             <p style="color: var(--text-sub); margin-bottom: 20px;">현재 진행 상태가 안전하게 보관되었습니다.</p>
             
             <div class="action-container" style="max-width: 450px; margin: 0 auto;">
@@ -347,7 +347,7 @@
     </div>
 
     <div id="screen-result" class="screen">
-        <h1 style="margin-bottom: 10px;">세션 종료 레포트</h1>
+        <h1 style="margin-bottom: 10px;">결과 분석</h1>
         <p id="score-summary" style="text-align: center; font-size: 1.3rem; font-weight: bold; margin-bottom: 30px;"></p>
         
         <div id="wrong-section">
@@ -369,7 +369,7 @@
         </div>
 
         <div class="action-container" style="flex-direction: row;">
-            <button class="action-btn btn-primary" onclick="goHome()">새로운 학습 프로세스 시작</button>
+            <button class="action-btn btn-primary" onclick="goHome()">다시 처음부터 학습하기</button>
         </div>
     </div>
 </div>
@@ -534,7 +534,7 @@
         
         document.getElementById('score-summary').innerHTML = `
             ${isEarlyStop ? '⚠️ 중간 정산 결과<br>' : ''}
-            시도한 문항: <span style="color:var(--primary); font-size:1.6rem;">${state.score}</span> / ${total} 
+            푼 문항: <span style="color:var(--primary); font-size:1.6rem;">${state.score}</span> / ${total} 
             (<span style="color:var(--correct);">${Math.round((state.score / total) * 100)}%</span>)
         `;
 
@@ -544,7 +544,7 @@
 
         if(state.wrongAnswers.length === 0) {
             wrongSection.style.display = "none";
-            document.getElementById('score-summary').innerHTML += "<br><span style='color:var(--correct); font-size:1.1rem;'>🎉 확인된 오답이 없습니다! 완벽합니다.</span>";
+            document.getElementById('score-summary').innerHTML += "<br><span style='color:var(--correct); font-size:1.1rem;'>🎉 확인된 오답이 없습니다! 완벽합니다!</span>";
         } else {
             wrongSection.style.display = "block";
             state.wrongAnswers.forEach(item => {
