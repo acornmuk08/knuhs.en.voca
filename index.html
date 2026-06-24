@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>단어 암기 마스터</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --primary-hover: #357ABD;
+            --bg: #F4F7F6;
+            --text-main: #333333;
+            --card-bg: #FFFFFF;
+            --correct: #2E7D32;
+            --wrong: #C62828;
+        }
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: var(--card-bg);
+            max-width: 800px;
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        p {
+            line-height: 1.6;
+            color: #666;
+        }
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Loading */
+        #loading {
+            font-size: 1.2rem;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Buttons */
+        .mode-btn {
+            display: block;
+            width: 100%;
+            max-width: 400px;
+            margin: 15px auto;
+            padding: 15px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(74, 144, 226, 0.2);
+        }
+        .mode-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        /* Quiz */
+        .progress {
+            font-size: 0.9rem;
+            color: #999;
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        .question-box {
+            font-size: 1.5rem;
+            margin: 30px 0;
+            padding: 30px;
+            background-color: #F8F9FA;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+            word-break: keep-all;
+        }
+        .option-btn {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+            background-color: white;
+            color: var(--text-main);
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+        .option-btn:hover {
+            border-color: var(--primary);
+            background-color: #F0F7FF;
+        }
+
+        /* Results */
+        .result-header {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        .wrong-table-container {
+            margin-top: 30px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #E0E0E0;
+        }
+        th {
+            background-color: #F8F9FA;
+            font-weight: bold;
+        }
+        .user-wrong {
+            color: var(--wrong);
+            font-weight: bold;
+            text-decoration: line-through;
+        }
+        .restart-btn {
+            margin-top: 40px;
+            background-color: #333;
+        }
+        .restart-btn:hover {
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 1. 로딩 화면 -->
+    <div id="loading" class="screen active">
+        <p>🔄 구글 스프레드시트에서 단어 데이터를 불러오는 중입니다...</p>
+    </div>
+
+    <!-- 2. 모드 선택 화면 -->
+    <div id="start-screen" class="screen">
+        <h1>단어 암기 마스터</h1>
+        <p>원하는 학습 모드를 선택하세요.</p>
+        
+        <button class="mode-btn" onclick="startQuiz(1)">1. 한국어 뜻 보고 영어 스펠링 맞추기</button>
+        <button class="mode-btn" onclick="startQuiz(2)">2. 영어 스펠링 보고 한국어 뜻 맞추기</button>
+        <button class="mode-btn" onclick="startQuiz(3)">3. 영영풀이 보고 영어 스펠링 맞추기</button>
+        <button class="mode-btn" onclick="startQuiz(4)">4. 영어 스펠링 보고 영영풀이 맞추기</button>
+    </div>
+
+    <!-- 3. 퀴즈 화면 -->
+    <div id="quiz-screen" class="screen">
+        <div class="progress" id="progress-text">문제 1 / 10</div>
+        <div class="question-box" id="question-box">질문이 여기에 표시됩니다.</div>
+        <div id="options-container">
+            <!-- 선택지 버튼들이 생성되는 곳 -->
+        </div>
+    </div>
+
+    <!-- 4. 결과 및 오답 확인 화면 -->
+    <div id="result-screen" class="screen">
+        <div class="result-header">학습 완료!</div>
+        <p id="score-text" style="font-size: 1.2rem; font-weight: bold;"></p>
+        
+        <div class="wrong-table-container">
+            <h3 style="text-align: left; margin-bottom: 10px;">❌ 오답 노트</h3>
+            <div id="wrong-answers-container"></div>
+        </div>
+        
+        <button class="mode-btn restart-btn" onclick="restart()">처음으로 돌아가기</button>
+    </div>
+</div>
+
+<script>
+    // 입력하신 URL을 CSV 출력용 URL로 변환하여 사용합니다.
+    const originalUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzEdGYQLi5cRqLWS0lv519MTtb2DzZcKxVkkWdKjgrqHYqJi-wtuAcwl7iVjTkQq_tQHzNlgsWS-22/pub?output=csv";
+    const sheetCsvUrl = originalUrl.replace('/pubhtml', '/pub?output=csv');
+
+    let allWords = [];
+    let quizWords = [];
+    let currentMode = 0;
+    let currentQuestionIndex = 0;
+    let wrongAnswers = [];
+    let score = 0;
+
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // 데이터 불러오기
+    window.onload = function() {
+        Papa.parse(sheetCsvUrl, {
+            download: true,
+            header: false, // 헤더가 없을 수도 있으므로 인덱스로 접근
+            complete: function(results) {
+                let data = results.data;
+                // 첫 행이 헤더일 경우(예: '단어', '뜻' 등 포함) 제거
+                if(data.length > 0 && (data[0].join('').includes('단어') || data[0].join('').includes('word'))) {
+                    data.shift();
+                }
+                
+                // 데이터 매핑 (일반적으로 A열: 영단어, B열: 뜻, C열: 영영풀이라고 가정)
+                allWords = data.filter(row => row.length >= 2 && row[0].trim() !== '').map(row => ({
+                    en: row[0] ? row[0].trim() : '',
+                    kr: row[1] ? row[1].trim() : '뜻 없음',
+                    def: row[2] ? row[2].trim() : '영영풀이 없음'
+                }));
+                
+                if(allWords.length < 5) {
+                    document.getElementById('loading').innerHTML = "<p style='color:red;'>데이터가 너무 적습니다. 최소 5개 이상의 단어가 필요합니다.</p>";
+                    return;
+                }
+                
+                switchScreen('start-screen');
+            },
+            error: function(err) {
+                document.getElementById('loading').innerHTML = `<p style='color:red;'>데이터를 불러오는데 실패했습니다.<br>스프레드시트가 '웹에 게시'되어 있는지 확인하세요.</p>`;
+            }
+        });
+    };
+
+    function startQuiz(mode) {
+        currentMode = mode;
+        // 단어 리스트 섞기
+        quizWords = [...allWords].sort(() => 0.5 - Math.random());
+        currentQuestionIndex = 0;
+        wrongAnswers = [];
+        score = 0;
+        
+        switchScreen('quiz-screen');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        if (currentQuestionIndex >= quizWords.length) {
+            endQuiz();
+            return;
+        }
+        
+        let currentWord = quizWords[currentQuestionIndex];
+        let questionText = "";
+        let answerKey = ""; // 정답을 추출할 키
+        
+        if (currentMode === 1) {
+            questionText = `다음 뜻을 가진 영단어는?<br><br><strong style='color:var(--primary); font-size:1.8rem;'>${currentWord.kr}</strong>`;
+            answerKey = 'en';
+        } else if (currentMode === 2) {
+            questionText = `다음 영단어의 뜻은?<br><br><strong style='color:var(--primary); font-size:1.8rem;'>${currentWord.en}</strong>`;
+            answerKey = 'kr';
+        } else if (currentMode === 3) {
+            questionText = `다음 영영풀이에 해당하는 단어는?<br><br><strong style='color:var(--primary); font-size:1.2rem; line-height:1.4;'>${currentWord.def}</strong>`;
+            answerKey = 'en';
+        } else if (currentMode === 4) {
+            questionText = `다음 영단어의 영영풀이는?<br><br><strong style='color:var(--primary); font-size:1.8rem;'>${currentWord.en}</strong>`;
+            answerKey = 'def';
+        }
+        
+        let correctAnswer = currentWord[answerKey];
+        
+        // 오답 4개 추출
+        let wrongPool = allWords.filter(w => w[answerKey] !== correctAnswer && w[answerKey] !== '뜻 없음' && w[answerKey] !== '영영풀이 없음');
+        // 오답 풀이 부족할 경우 대비
+        wrongPool = wrongPool.sort(() => 0.5 - Math.random()).slice(0, 4);
+        
+        let options = wrongPool.map(w => w[answerKey]);
+        options.push(correctAnswer);
+        options = options.sort(() => 0.5 - Math.random()); // 선택지 섞기
+        
+        // 화면 업데이트
+        document.getElementById('question-box').innerHTML = questionText;
+        document.getElementById('progress-text').innerText = `문제 ${currentQuestionIndex + 1} / ${quizWords.length}`;
+        
+        let optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+        
+        options.forEach(opt => {
+            let btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(opt, correctAnswer, currentWord);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selected, correct, wordObj) {
+        if (selected === correct) {
+            score++;
+        } else {
+            wrongAnswers.push({
+                word: wordObj,
+                selected: selected,
+                correct: correct
+            });
+        }
+        currentQuestionIndex++;
+        showQuestion();
+    }
+
+    function endQuiz() {
+        switchScreen('result-screen');
+        
+        let scoreText = `총 ${quizWords.length}문제 중 <span style='color:var(--primary)'>${score}</span>문제를 맞췄습니다!`;
+        document.getElementById('score-text').innerHTML = scoreText;
+        
+        let wrongContainer = document.getElementById('wrong-answers-container');
+        
+        if (wrongAnswers.length === 0) {
+            wrongContainer.innerHTML = '<p style="text-align:center; padding:30px; background:#e8f5e9; border-radius:8px; color:var(--correct);">🎉 모든 문제를 다 맞췄습니다! 완벽합니다!</p>';
+        } else {
+            let table = `<table>
+                <tr>
+                    <th style="width:15%">영단어</th>
+                    <th style="width:20%">뜻</th>
+                    <th style="width:40%">영영풀이</th>
+                    <th style="width:25%">내가 고른 답</th>
+                </tr>`;
+            
+            wrongAnswers.forEach(item => {
+                let selectedLabel = item.selected;
+                // 긴 영영풀이를 골랐을 경우를 대비해 살짝 자르기
+                if(selectedLabel.length > 50) selectedLabel = selectedLabel.substring(0, 50) + "...";
+                
+                table += `<tr>
+                    <td><strong>${item.word.en}</strong></td>
+                    <td>${item.word.kr}</td>
+                    <td style="font-size:0.9rem;">${item.word.def}</td>
+                    <td class="user-wrong">${selectedLabel}</td>
+                </tr>`;
+            });
+            table += '</table>';
+            wrongContainer.innerHTML = table;
+        }
+    }
+
+    function restart() {
+        switchScreen('start-screen');
+    }
+</script>
+</body>
+</html>
