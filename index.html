@@ -331,7 +331,7 @@
     <div id="screen-wordlist" class="screen">
         <h1 style="margin-bottom: 10px;">전체 단어장</h1>
         <p class="description">시험을 시작하기 전에 단어를 꼼꼼히 확인해 보세요.</p>
-    
+        
         <div class="table-wrapper">
             <table>
                 <thead>
@@ -349,7 +349,7 @@
         <div class="action-container" style="flex-direction: row;">
             <button class="action-btn btn-primary" onclick="goHome()">메인 메뉴로 돌아가기</button>
         </div>
-     </div>
+    </div>
     
     <div id="screen-quiz" class="screen">
         <div class="quiz-header">
@@ -435,15 +435,15 @@
     function pauseQuiz() { changeScreen('screen-pause'); }
     function resumeQuiz() { changeScreen('screen-quiz'); }
     function goHome() { changeScreen('screen-home'); }
-    // 단어 전체 리스트 렌더링 함수
+// 단어 전체 리스트 렌더링 함수
     function showWordList() {
         changeScreen('screen-wordlist');
         const tbody = document.getElementById('wordlist-table-body');
-        tbody.innerHTML = ""; // 열 때마다 기존 리스트 초기화
+        tbody.innerHTML = ""; // 기존 리스트 초기화
 
         allWords.forEach(word => {
             let row = document.createElement('tr');
-        
+            
             let tdEn = document.createElement('td');
             tdEn.className = "td-word";
             tdEn.innerText = word.en;
