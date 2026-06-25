@@ -306,35 +306,12 @@
         <p style="color: var(--text-sub);">실시간 단어 목록을 클라이언트 환경에 구성하고 있습니다.</p>
         <div class="spinner"></div>
     </div>
-    <button class="mode-btn btn-emerald" onclick="showWordList()">
-        <i class="fa-solid fa-list-ul"></i> 0. 단어 전체 리스트 (미리 학습하기)
-    </button>
-
-    <div id="screen-wordlist" class="screen">
-        <h1 style="margin-bottom: 10px;">전체 단어장</h1>
-        <p class="description">시험을 시작하기 전에 단어를 꼼꼼히 확인해 보세요.</p>
-    
-        <div class="table-wrapper">
-          <table>
-              <thead>
-                  <tr>
-                      <th style="width: 25%;">영어 단어</th>
-                      <th style="width: 30%;">한글 뜻</th>
-                      <th style="width: 45%;">영영풀이</th>
-                  </tr>
-              </thead>
-              <tbody id="wordlist-table-body">
-                  </tbody>
-          </table>
-        </div>
-        <div class="action-container" style="flex-direction: row;">
-        <button class="action-btn btn-primary" onclick="goHome()">메인 메뉴로 돌아가기</button>
-        </div>
-    </div>
-    <div id="screen-home" class="screen">
         <h1>명솔VOCA 마스터 되기</h1>
         <p class="description">원하는 문제 풀이 방식을 선택하세요!</p>
-        
+
+        <button class="mode-btn btn-emerald" onclick="showWordList()">
+            <i class="fa-solid fa-list-ul"></i> 0. 단어 전체 리스트
+        </button>
         <button class="mode-btn" onclick="initQuiz(1)">
             <i class="fa-solid fa-language"></i> 1. 한국어 뜻 보고 영어 맞추기
         </button>
@@ -350,6 +327,30 @@
         <p><a href="https://github.com/acornmuk08/knuhs.en.voca">기능 설명 보러가기</a></p>
     </div>
 
+
+    <div id="screen-wordlist" class="screen">
+        <h1 style="margin-bottom: 10px;">전체 단어장</h1>
+        <p class="description">시험을 시작하기 전에 단어를 꼼꼼히 확인해 보세요.</p>
+    
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">영어 단어</th>
+                        <th style="width: 30%;">한글 뜻</th>
+                        <th style="width: 45%;">영영풀이</th>
+                    </tr>
+                </thead>
+                <tbody id="wordlist-table-body">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="action-container" style="flex-direction: row;">
+            <button class="action-btn btn-primary" onclick="goHome()">메인 메뉴로 돌아가기</button>
+        </div>
+     </div>
+    
     <div id="screen-quiz" class="screen">
         <div class="quiz-header">
             <span id="quiz-mode-title">세션 실행 중</span>
