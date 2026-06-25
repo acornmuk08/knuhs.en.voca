@@ -20,6 +20,8 @@
             --wrong: #E74C3C;
             --orange: #E67E22;
             --orange-hover: #D35400;
+            --emerald: #10B981;
+            --emerald-hover: #059669;
             --shadow: rgba(0, 0, 0, 0.06);
         }
 
@@ -220,6 +222,7 @@
         .table-wrapper {
             margin-top: 30px;
             overflow-x: auto;
+            max-height: 60vh; /* 추가됨: 세로 길이가 길어지면 스크롤 생성 */
             border-radius: 12px;
             border: 1px solid var(--border);
         }
@@ -239,6 +242,9 @@
             background-color: var(--bg-main);
             font-weight: 600;
             color: var(--text-sub);
+            position: sticky; /* 추가됨: 스크롤을 내려도 제목 줄 고정 */
+            top: 0;
+            z-index: 1;
         }
 
         .td-word { font-weight: bold; color: var(--primary); }
@@ -267,6 +273,8 @@
         .btn-orange:hover { background-color: var(--orange-hover); }
         .btn-secondary { background-color: var(--text-sub); color: white; }
         .btn-secondary:hover { opacity: 0.9; }
+        .btn-emerald { background-color: var(--emerald); }
+        .btn-emerald:hover { background-color: var(--emerald-hover); }
 
         /* 로더 애니메이션 */
         .spinner {
@@ -298,7 +306,31 @@
         <p style="color: var(--text-sub);">실시간 단어 목록을 클라이언트 환경에 구성하고 있습니다.</p>
         <div class="spinner"></div>
     </div>
+    <button class="mode-btn btn-emerald" onclick="showWordList()">
+        <i class="fa-solid fa-list-ul"></i> 0. 단어 전체 리스트 (미리 학습하기)
+    </button>
 
+    <div id="screen-wordlist" class="screen">
+        <h1 style="margin-bottom: 10px;">전체 단어장</h1>
+        <p class="description">시험을 시작하기 전에 단어를 꼼꼼히 확인해 보세요.</p>
+    
+        <div class="table-wrapper">
+          <table>
+              <thead>
+                  <tr>
+                      <th style="width: 25%;">영어 단어</th>
+                      <th style="width: 30%;">한글 뜻</th>
+                      <th style="width: 45%;">영영풀이</th>
+                  </tr>
+              </thead>
+              <tbody id="wordlist-table-body">
+                  </tbody>
+          </table>
+        </div>
+        <div class="action-container" style="flex-direction: row;">
+        <button class="action-btn btn-primary" onclick="goHome()">메인 메뉴로 돌아가기</button>
+        </div>
+    </div>
     <div id="screen-home" class="screen">
         <h1>명솔VOCA 마스터 되기</h1>
         <p class="description">원하는 문제 풀이 방식을 선택하세요!</p>
@@ -402,6 +434,31 @@
     function pauseQuiz() { changeScreen('screen-pause'); }
     function resumeQuiz() { changeScreen('screen-quiz'); }
     function goHome() { changeScreen('screen-home'); }
+    // 단어 전체 리스트 렌더링 함수
+    function showWordList() {
+        changeScreen('screen-wordlist');
+        const tbody = document.getElementById('wordlist-table-body');
+        tbody.innerHTML = ""; // 열 때마다 기존 리스트 초기화
+
+        allWords.forEach(word => {
+            let row = document.createElement('tr');
+        
+            let tdEn = document.createElement('td');
+            tdEn.className = "td-word";
+            tdEn.innerText = word.en;
+
+            let tdKr = document.createElement('td');
+            tdKr.innerText = word.kr;
+
+            let tdDef = document.createElement('td');
+            tdDef.innerText = word.def;
+
+            row.appendChild(tdEn);
+            row.appendChild(tdKr);
+            row.appendChild(tdDef);
+            tbody.appendChild(row);
+        });
+    }
 
     // 중간 중단 및 정산 함수
     function stopAndShowResults() {
